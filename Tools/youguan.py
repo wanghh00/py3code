@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import argparse
 
 import time, sys, re, random
+import logging; LOG = logging.getLogger(__name__)
 
 def getChromeDriver(arguments=[], proxy=""):
     #options = webdriver.ChromeOptions()
@@ -29,7 +30,7 @@ def getChromeDriver(arguments=[], proxy=""):
     
     return webdriver.Chrome(chrome_options=options)
 
-def waitPlay(driver, url, minutes, locator="", waitlocator=30, dryrun=False):
+def waitPlay(driver, url, minutes, locator="", waitlocator=60, dryrun=False):
     print("url=%s minutes=%s" % (url, minutes))
 
     if dryrun:
@@ -46,8 +47,8 @@ def waitPlay(driver, url, minutes, locator="", waitlocator=30, dryrun=False):
         for x in range(minutes):
             time.sleep(60)
             print("Played %s mintues" % x)
-    except Exception:
-        pass
+    except Exception as ex:
+        LOG.exception(ex)
     finally:
         driver.quit()
 
@@ -69,8 +70,8 @@ if args.linkfile:
         for one in fd:
             one = one.strip()
             if not one: continue
-            url, time = re.split(r'\s+', one)
-            lstUrl.append((url, int(time)))
+            url, duration = re.split(r'\s+', one)
+            lstUrl.append((url, int(duration)))
 else:
     lstUrl.append(('https://www.youtube.com/watch?v=9LET0ZM7qXg',30))
 
