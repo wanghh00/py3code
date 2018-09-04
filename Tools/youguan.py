@@ -46,6 +46,8 @@ def waitPlay(driver, url, minutes, locator="", waitlocator=30, dryrun=False):
         for x in range(minutes):
             time.sleep(60)
             print("Played %s mintues" % x)
+    except Exception:
+        pass
     finally:
         driver.quit()
 
@@ -62,19 +64,25 @@ args = parseArguments()
 #print(args.proxyfile)
 
 lstUrl = []
-with open(args.linkfile) as fd:
-    for one in fd:
-        one = one.strip()
-        if not one: continue
-        url, time = re.split(r'\s+', one)
-        lstUrl.append((url, int(time)))
+if args.linkfile:
+    with open(args.linkfile) as fd:
+        for one in fd:
+            one = one.strip()
+            if not one: continue
+            url, time = re.split(r'\s+', one)
+            lstUrl.append((url, int(time)))
+else:
+    lstUrl.append(('https://www.youtube.com/watch?v=9LET0ZM7qXg',30))
 
 lstProxy = []
-with open(args.proxyfile) as fd:
-    for one in fd:
-        one = one.strip()
-        if not one: continue
-        lstProxy.append(one)
+if args.proxyfile:
+    with open(args.proxyfile) as fd:
+        for one in fd:
+            one = one.strip()
+            if not one: continue
+            lstProxy.append(one)
+else:
+    lstProxy.append("")
 
 lstArgs = ['--ignore-certificate-errors']
 random.shuffle(lstProxy)
