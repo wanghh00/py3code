@@ -11,6 +11,9 @@ import argparse
 import time, sys, re, random
 import logging; LOG = logging.getLogger(__name__)
 
+LOGFMT = '[%(asctime)s %(filename)s:%(lineno)d] %(message)s'
+LOGDATEFMT = '%Y%m%d-%H:%M:%S'
+
 def getChromeDriver(arguments=[], proxy=""):
     #options = webdriver.ChromeOptions()
     #options.add_argument('--ignore-certificate-errors')
@@ -31,7 +34,7 @@ def getChromeDriver(arguments=[], proxy=""):
     return webdriver.Chrome(chrome_options=options)
 
 def waitPlay(driver, url, minutes, locator="", waitlocator=60, dryrun=False):
-    print("url=%s minutes=%s" % (url, minutes))
+    LOG.info("Playing url=%s minutes=%s" % (url, minutes))
 
     if dryrun:
         driver.quit()
@@ -40,13 +43,13 @@ def waitPlay(driver, url, minutes, locator="", waitlocator=60, dryrun=False):
     try:
         driver.get(url)
         if locator:
-            print("Checking Page loaded")
+            LOG.info("Checking Page loaded")
             WebDriverWait(driver, waitlocator).until(
                 EC.presence_of_element_located((By.ID, "logo-icon-container")))
 
         for x in range(minutes):
             time.sleep(60)
-            print("Played %s mintues" % x)
+            LOG.info("Played %s mintues" % x)
     except Exception as ex:
         LOG.exception(ex)
     finally:
@@ -59,6 +62,9 @@ def parseArguments():
     parser.add_argument('-p', '--proxyfile', help='File include proxy and port each line')
 
     return parser.parse_args()
+
+logging.basicConfig(format=LOGFMT,datefmt=LOGDATEFMT)
+logging.getLogger().setLevel(logging.INFO)
 
 args = parseArguments()
 #print(args.linkfile)
