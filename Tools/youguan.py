@@ -94,6 +94,7 @@ else:
 lstArgs = ['--ignore-certificate-errors']
 random.shuffle(lstProxy)
 for proxy in lstProxy:
+    LOG.info("Using Proxy [%s]" % proxy)
     for one in lstUrl:
         driver = getChromeDriver(lstArgs, proxy)
         waitPlay(driver, one[0], one[1], "logo-icon-container")
