@@ -60,6 +60,7 @@ def parseArguments():
 
     parser.add_argument('-f', '--linkfile', help='File include link and minutes in one line')
     parser.add_argument('-p', '--proxyfile', help='File include proxy and port each line')
+    parser.add_argument('-n', '--numberoftimes', help='number of times to run', type=int, default=1)
 
     return parser.parse_args()
 
@@ -87,9 +88,9 @@ if args.proxyfile:
         for one in fd:
             one = one.strip()
             if not one or one[0] == '#': continue
-            lstProxy.append(one)
+            lstProxy.extend([one]*args.numberoftimes)
 else:
-    lstProxy.append("")
+    lstProxy.append([""]*args.numberoftimes)
 
 lstArgs = ['--ignore-certificate-errors']
 random.shuffle(lstProxy)
