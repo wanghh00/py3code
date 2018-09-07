@@ -75,7 +75,7 @@ if args.linkfile:
     with open(args.linkfile) as fd:
         for one in fd:
             one = one.strip()
-            if not one: continue
+            if not one or one[0] == '#': continue
             url, duration = re.split(r'\s+', one)
             lstUrl.append((url, int(duration)))
 else:
@@ -86,7 +86,7 @@ if args.proxyfile:
     with open(args.proxyfile) as fd:
         for one in fd:
             one = one.strip()
-            if not one: continue
+            if not one or one[0] == '#': continue
             lstProxy.append(one)
 else:
     lstProxy.append("")
