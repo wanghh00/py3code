@@ -14,7 +14,7 @@ import logging; LOG = logging.getLogger(__name__)
 LOGFMT = '[%(asctime)s %(filename)s:%(lineno)d] %(message)s'
 LOGDATEFMT = '%Y%m%d-%H:%M:%S'
 
-class FireFoxDriverBuilder(object):
+class DriverBuilder(object):
     def __init__(self, proxy=''):
         self.proxy = proxy
     
@@ -22,7 +22,22 @@ class FireFoxDriverBuilder(object):
         self.proxy = proxy
         return self
     
+    def _getDriver(self):
+        raise NotImplementedError
+
     def getDriver(self):
+        ret = None
+        try:
+            ret = self._getDriver()
+        except Exception as ex:
+            LOG.exception(ex)
+        return ret
+
+class FireFoxDriverBuilder(DriverBuilder):
+    def __init__(self, proxy=''):
+        DriverBuilder.__init__(self, proxy)
+    
+    def _getDriver(self):
         profile = webdriver.FirefoxProfile()
         if self.proxy:
             host, port = self.proxy.split(":")
@@ -34,20 +49,16 @@ class FireFoxDriverBuilder(object):
 
         return webdriver.Firefox(firefox_profile=profile)
 
-class ChromeDriverBuilder(object):
+class ChromeDriverBuilder(DriverBuilder):
     def __init__(self, proxy=''):
+        DriverBuilder.__init__(self, proxy)
         self.arguments = ['--ignore-certificate-errors']
-        self.proxy = proxy
-    
-    def setProxy(self, proxy):
-        self.proxy = proxy
-        return self
     
     def setArguments(self, arguments):
         self.arguments = arguments
         return self
 
-    def getDriver(self):
+    def _getDriver(self):
         #options = webdriver.ChromeOptions()
         #options.add_argument('--ignore-certificate-errors')
         #options.add_argument("--test-type")
