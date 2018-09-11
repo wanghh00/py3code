@@ -80,8 +80,8 @@ class ChromeDriverBuilder(DriverBuilder):
 def waitPlay(driver, url, minutes, locator="", waitlocator=60, dryrun=False):
     LOG.info("Playing url=%s minutes=%s" % (url, minutes))
 
-    if dryrun:
-        driver.quit()
+    if dryrun or not driver:
+        driver and driver.quit()
         return
 
     try:
