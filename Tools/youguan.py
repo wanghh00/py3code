@@ -7,6 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 import argparse
+import requests
 
 import time, sys, re, random
 import logging; LOG = logging.getLogger(__name__)
@@ -17,16 +18,23 @@ LOGDATEFMT = '%Y%m%d-%H:%M:%S'
 class DriverBuilder(object):
     def __init__(self, proxy=''):
         self.proxy = proxy
+        self.dryrun = False
     
     def setProxy(self, proxy):
         self.proxy = proxy
         return self
     
+    def setDryrun(self, dryrun):
+        self.dryrun = dryrun
+        return self
+
     def _getDriver(self):
         raise NotImplementedError
 
     def getDriver(self):
         ret = None
+        if self.dryrun:
+            return ret
         try:
             ret = self._getDriver()
         except Exception as ex:
@@ -77,14 +85,12 @@ class ChromeDriverBuilder(DriverBuilder):
         
         return webdriver.Chrome(chrome_options=options)
 
-def waitPlay(driver, url, minutes, locator="", waitlocator=60, dryrun=False):
-    LOG.info("Playing url=%s minutes=%s" % (url, minutes))
-
-    if dryrun or not driver:
-        driver and driver.quit()
+def waitPlay(driver, url, minutes, locator="", waitlocator=60):
+    if not driver:
         return
 
     try:
+        LOG.info("Playing url=%s minutes=%s" % (url, minutes))
         driver.get(url)
         if locator:
             LOG.info("Checking Page loaded")
@@ -99,6 +105,20 @@ def waitPlay(driver, url, minutes, locator="", waitlocator=60, dryrun=False):
     finally:
         driver.quit()
 
+def chkProxy(proxy):
+    ret = True
+    response = None
+    if proxy:
+        try:
+            response = requests.get("https://example.com/", proxies={'https':proxy}, timeout=(9.05, 27))
+            ret = response.status_code == 200
+        except Exception:
+            ret = False
+        finally:
+            response and response.close()
+        LOG.info("Check proxy: %s [%s]" % (proxy, ret))
+    return ret
+
 def parseArguments():
     parser = argparse.ArgumentParser()
 
@@ -106,6 +126,7 @@ def parseArguments():
     parser.add_argument('-p', '--proxyfile', help='File include proxy and port each line')
     parser.add_argument('-n', '--numberoftimes', help='Number of times to run', type=int, default=1)
     parser.add_argument('-b', '--browsers', help='Browsers to be used', default='chrome')
+    parser.add_argument('--dryrun', action='store_true')
 
     return parser.parse_args()
 
@@ -146,12 +167,15 @@ else:
 random.shuffle(lstProxy)
 for proxy in lstProxy:
     LOG.info("Using Proxy [%s]" % proxy)
+
+    if not chkProxy(proxy):
+        continue
+    
     for one in lstUrl:
         browser = random.choice(lstBrowsers).lower()
         builder = chromeDriverBuilder
         if browser == 'firefox':
             builder = fireFoxDriverBuilder
         
-        LOG.info(proxy)
-        driver = builder.setProxy(proxy).getDriver()
+        driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
         waitPlay(driver, one[0], one[1], "logo-icon-container")
