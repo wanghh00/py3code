@@ -150,8 +150,7 @@ def getFileDesc(path):
     except Exception as ex:
         LOG.error(ex)
         fd = None
-    finally:
-        return fd
+    return fd
 
 logging.basicConfig(format=LOGFMT,datefmt=LOGDATEFMT)
 logging.getLogger().setLevel(logging.INFO)
@@ -184,6 +183,7 @@ def getLstUrl(pathLinkFile):
 
 def getProxyUrl(pathProxyFile):
     global LstProxy
+    fd = None
     try:
         fd = getFileDesc(pathProxyFile)
         if not fd:
