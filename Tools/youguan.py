@@ -9,11 +9,15 @@ from selenium.webdriver.support import expected_conditions as EC
 import argparse
 import requests
 
+import os
 import time, sys, re, random
 import logging; LOG = logging.getLogger(__name__)
 
 LOGFMT = '[%(asctime)s %(filename)s:%(lineno)d] %(message)s'
 LOGDATEFMT = '%Y%m%d-%H:%M:%S'
+
+DctFileDesc = {}
+LstUrl, LstProxy = [], []
 
 class DriverBuilder(object):
     def __init__(self, proxy=''):
@@ -130,6 +134,25 @@ def parseArguments():
 
     return parser.parse_args()
 
+def getFileDesc(path):
+    try:
+        if not path:
+            return None
+        fd = None
+        info = os.stat(path)
+        if path not in DctFileDesc:
+            DctFileDesc[path] = 0
+        if DctFileDesc[path] == int(info.st_mtime):
+            return None
+        LOG.info("Loading %s" % path)
+        fd = open(path)
+        DctFileDesc[path] = int(info.st_mtime)
+    except Exception as ex:
+        LOG.error(ex)
+        fd = None
+    finally:
+        return fd
+
 logging.basicConfig(format=LOGFMT,datefmt=LOGDATEFMT)
 logging.getLogger().setLevel(logging.INFO)
 
@@ -142,40 +165,52 @@ args = parseArguments()
 
 lstBrowsers = args.browsers.split(',')
 
-lstUrl = []
-if args.linkfile:
-    with open(args.linkfile) as fd:
+def getLstUrl(pathLinkFile):
+    global LstUrl
+    try:
+        fd = getFileDesc(pathLinkFile)
+        if not fd:
+            return LstUrl
+        LstUrl = []
         for one in fd:
             one = one.strip()
             if not one or one[0] == '#': continue
             url, duration = re.split(r'\s+', one)
-            lstUrl.append((url, int(duration)))
-else:
-    lstUrl.append(('https://www.youtube.com/watch?v=9LET0ZM7qXg',30))
+            LstUrl.append((url, int(duration)))
+    finally:
+        fd and fd.close()
+    random.shuffle(LstUrl)
+    return LstUrl
 
-lstProxy = []
-if args.proxyfile:
-    with open(args.proxyfile) as fd:
+def getProxyUrl(pathProxyFile):
+    global LstProxy
+    try:
+        fd = getFileDesc(pathProxyFile)
+        if not fd:
+            LstProxy = LstProxy or [""]*args.numberoftimes
+            return LstProxy 
+        LstProxy = []
         for one in fd:
             one = one.strip()
             if not one or one[0] == '#': continue
-            lstProxy.extend([one]*args.numberoftimes)
-else:
-    lstProxy.extend([""]*args.numberoftimes)
+            LstProxy.extend([one]*args.numberoftimes)
+    finally:
+        fd and fd.close()
+    random.shuffle(LstProxy)
+    return LstProxy
 
-#lstArgs = ['--ignore-certificate-errors']
-random.shuffle(lstProxy)
-for proxy in lstProxy:
-    LOG.info("Using Proxy [%s]" % proxy)
+while 1:
+    for proxy in getProxyUrl(args.proxyfile):
+        LOG.info("Using Proxy [%s]" % proxy)
 
-    if not chkProxy(proxy):
-        continue
-    
-    for one in lstUrl:
-        browser = random.choice(lstBrowsers).lower()
-        builder = chromeDriverBuilder
-        if browser == 'firefox':
-            builder = fireFoxDriverBuilder
+        if not chkProxy(proxy):
+            continue
         
-        driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
-        waitPlay(driver, one[0], one[1], "logo-icon-container")
+        for one in getLstUrl(args.linkfile):
+            browser = random.choice(lstBrowsers).lower()
+            builder = chromeDriverBuilder
+            if browser == 'firefox':
+                builder = fireFoxDriverBuilder
+            
+            driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
+            waitPlay(driver, one[0], one[1], "logo-icon-container")
