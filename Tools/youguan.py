@@ -200,13 +200,13 @@ def getProxyUrl(pathProxyFile):
     return LstProxy
 
 while 1:
-    for proxy in getProxyUrl(args.proxyfile):
-        LOG.info("Using Proxy [%s]" % proxy)
+    for one in  getLstUrl(args.linkfile):
+        for proxy in getProxyUrl(args.proxyfile):
+            LOG.info("Using Proxy [%s]" % proxy)
 
-        if not chkProxy(proxy):
-            continue
+            if not chkProxy(proxy):
+                continue
         
-        for one in getLstUrl(args.linkfile):
             browser = random.choice(lstBrowsers).lower()
             builder = chromeDriverBuilder
             if browser == 'firefox':
