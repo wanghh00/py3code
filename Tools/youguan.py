@@ -37,6 +37,7 @@ class DriverBuilder(object):
 
     def getDriver(self):
         ret = None
+        LOG.info("Launch browser with proxy: %s" % self.proxy)
         if self.dryrun:
             return ret
         try:
@@ -201,16 +202,17 @@ def getProxyUrl(pathProxyFile):
 
 while 1:
     for one in  getLstUrl(args.linkfile):
-        for proxy in getProxyUrl(args.proxyfile):
-            LOG.info("Using Proxy [%s]" % proxy)
 
-            if not chkProxy(proxy):
-                continue
+        proxyList = getProxyUrl(args.proxyfile)
+        while 1:
+            proxy = random.choice(proxyList)
+            if chkProxy(proxy):
+                break
         
-            browser = random.choice(lstBrowsers).lower()
-            builder = chromeDriverBuilder
-            if browser == 'firefox':
-                builder = fireFoxDriverBuilder
-            
-            driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
-            waitPlay(driver, one[0], one[1], "logo-icon-container")
+        browser = random.choice(lstBrowsers).lower()
+        builder = chromeDriverBuilder
+        if browser == 'firefox':
+            builder = fireFoxDriverBuilder
+        
+        driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
+        waitPlay(driver, one[0], one[1], "logo-icon-container")
