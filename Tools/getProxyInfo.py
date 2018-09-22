@@ -6,6 +6,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from bs4 import BeautifulSoup
+
 import argparse
 import requests
 
@@ -134,23 +136,6 @@ def parseArguments():
 
     return parser.parse_args()
 
-def getFileDesc(path):
-    try:
-        if not path:
-            return None
-        fd = None
-        info = os.stat(path)
-        if path not in DctFileDesc:
-            DctFileDesc[path] = 0
-        if DctFileDesc[path] == int(info.st_mtime):
-            return None
-        LOG.info("Loading %s" % path)
-        fd = open(path)
-        DctFileDesc[path] = int(info.st_mtime)
-    except Exception as ex:
-        LOG.error(ex)
-        fd = None
-    return fd
 
 logging.basicConfig(format=LOGFMT,datefmt=LOGDATEFMT)
 logging.getLogger().setLevel(logging.INFO)
@@ -158,105 +143,43 @@ logging.getLogger().setLevel(logging.INFO)
 fireFoxDriverBuilder = FireFoxDriverBuilder()
 chromeDriverBuilder = ChromeDriverBuilder()
 
-
-def findVideo(driver, videoId):
-    for one in driver.find_elements(By.ID, "thumbnail"):
-        print(one)
-        href = one.get_attribute('href')
-        print(href)
-        if href.find(videoId) != -1:
-            return one
-    return None
-
-def findUser(driver, userId):
-    for one in driver.find_elements(By.CSS_SELECTOR, "a.ytd-channel-renderer"):
-        href = one.get_attribute
-
-# yt-simple-endpoint style-scope ytd-channel-renderer
-# Scroll down to page bottom
-# https://stackoverflow.com/questions/20986631/how-can-i-scroll-a-web-page-using-selenium-webdriver-in-python
+SPYSURLS = ["http://spys.one/free-proxy-list/US/", "http://spys.one/free-proxy-list/US/1/"]
+US_PROXY_ORG = "https://www.us-proxy.org/"
 
 
-url = 'https://www.youtube.com/'
+#with open('/tmp/hehe.html') as fp:
+#    soup = BeautifulSoup(fp.read(), 'html.parser')
+#    print(soup.prettify())
+
+#sys.exit(0)
+
+def parseSPYS(driver):
+    ret = []
+    rows = driver.find_elements(By.CSS_SELECTOR, "tr.spy1x") + driver.find_elements(By.CSS_SELECTOR, "tr.spy1xx")
+    for row in rows:
+        cols = row.find_elements(By.CSS_SELECTOR, "td")
+        LOG.info("%s %s %s" % (cols[0].text, cols[1].text, cols[2].text))
+        if cols[1].text != "HTTPS" or cols[2].text != "HIA":
+            continue
+        ret.append(cols[0].text.split(" ")[1])
+    return ret
+
+
 driver = chromeDriverBuilder.getDriver()
-#driver = fireFoxDriverBuilder.getDriver()
-driver.get(url)
 
+outFile, driver = None, None
+try:
+    outFile = open(sys.argv[1], 'w')
+    driver = chromeDriverBuilder.getDriver()
 
-time.sleep(3)
-searchBar = driver.find_element(By.ID, "search")
-searchBar.send_keys("理财")
+    for one in SPYSURLS:
+        outFile.write("#%s\n" % one)
+        driver.get(SPYSURLS[0])
+        for proxy in parseSPYS(driver):
+            outFile.write("%s\n" % proxy)
+except Exception as ex:
+    LOG.exception(ex)
+finally:
+    driver and driver.close()
+    outFile and outFile.close()
 
-time.sleep(3)
-searchButton = driver.find_element(By.ID, "search-icon-legacy")
-searchButton.click()
-
-time.sleep(3)
-for one in driver.find_elements(By.ID, "thumbnail"):
-    print(one)
-    href = one.get_attribute('href')
-    print(href)
-    if href.find("knucZCUpmxs") != -1:
-        one.click()
-
-time.sleep(60)
-
-sys.exit(0)
-
-
-args = parseArguments()
-#print(args.linkfile)
-#print(args.proxyfile)
-
-lstBrowsers = args.browsers.split(',')
-
-def getLstUrl(pathLinkFile):
-    global LstUrl
-    try:
-        fd = getFileDesc(pathLinkFile)
-        if not fd:
-            return LstUrl
-        LstUrl = []
-        for one in fd:
-            one = one.strip()
-            if not one or one[0] == '#': continue
-            url, duration = re.split(r'\s+', one)
-            LstUrl.append((url, int(duration)))
-    finally:
-        fd and fd.close()
-    random.shuffle(LstUrl)
-    return LstUrl
-
-def getProxyUrl(pathProxyFile):
-    global LstProxy
-    fd = None
-    try:
-        fd = getFileDesc(pathProxyFile)
-        if not fd:
-            LstProxy = LstProxy or [""]*args.numberoftimes
-            return LstProxy 
-        LstProxy = []
-        for one in fd:
-            one = one.strip()
-            if not one or one[0] == '#': continue
-            LstProxy.extend([one]*args.numberoftimes)
-    finally:
-        fd and fd.close()
-    random.shuffle(LstProxy)
-    return LstProxy
-
-while 1:
-    for one in  getLstUrl(args.linkfile):
-        for proxy in getProxyUrl(args.proxyfile):
-            LOG.info("Using Proxy [%s]" % proxy)
-
-            if not chkProxy(proxy):
-                continue
-        
-            browser = random.choice(lstBrowsers).lower()
-            builder = chromeDriverBuilder
-            if browser == 'firefox':
-                builder = fireFoxDriverBuilder
-            
-            driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
-            waitPlay(driver, one[0], one[1], "logo-icon-container")
