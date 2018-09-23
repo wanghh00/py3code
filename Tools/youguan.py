@@ -19,6 +19,9 @@ LOGDATEFMT = '%Y%m%d-%H:%M:%S'
 DctFileDesc = {}
 LstUrl, LstProxy = [], []
 
+GITPROXFILE_URL = 'https://raw.githubusercontent.com/wanghh00/py3code/master/Tools/proxyfile'
+# 'ETag': '"9f6b65f8d9d46b1f92b3ae982d878a4ca92a7537"' could be used to identify change of file
+
 class DriverBuilder(object):
     def __init__(self, proxy=''):
         self.proxy = proxy

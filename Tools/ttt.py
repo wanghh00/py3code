@@ -177,6 +177,13 @@ def findUser(driver, userId):
 # https://stackoverflow.com/questions/20986631/how-can-i-scroll-a-web-page-using-selenium-webdriver-in-python
 
 
+githuburl = 'https://raw.githubusercontent.com/wanghh00/py3code/master/Tools/proxyfile'
+r = requests.get(githuburl)
+print(r.headers)
+print(requests.get(githuburl).text.split('\n'))
+
+sys.exit(0)
+
 url = 'https://www.youtube.com/'
 driver = chromeDriverBuilder.getDriver()
 #driver = fireFoxDriverBuilder.getDriver()
