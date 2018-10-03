@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+import pyautogui, platform
 import argparse
 import requests
 
@@ -26,11 +27,36 @@ class DriverBuilder(object):
     def __init__(self, proxy=''):
         self.proxy = proxy
         self.dryrun = False
+        self.start_x = 0
+        self.start_y = 0
+        self.width = 1024
+        self.height = 768
+        self.browserHeaderHeight = 150
+        self.extraHeader = 30 if platform.system() == 'Darwin' else 0
     
     def setProxy(self, proxy):
         self.proxy = proxy
         return self
     
+    def setDimension(self, width, height):
+        self.width = int(width)
+        self.height = int(height)
+        return self
+
+    def setLocation(self, x0, y0, x1=0, y1=0):
+        x0, y0, x1, y1 = int(x0), int(y0), int(x1), int(y1)
+        self.start_x = x0
+        self.start_y = y0
+
+        if x1 > x0 and y1 > y0:
+            self.width = abs(x1 - x0)
+            self.height = abs(y1 - y0)
+        return self
+    
+    def setBrowserHeaderHeight(self, headerHeight):
+        self.browserHeaderHeight = headerHeight
+        return self
+
     def setDryrun(self, dryrun):
         self.dryrun = dryrun
         return self
@@ -39,15 +65,17 @@ class DriverBuilder(object):
         raise NotImplementedError
 
     def getDriver(self):
-        ret = None
+        driver = None
         LOG.info("Launch browser with proxy: %s" % self.proxy)
         if self.dryrun:
-            return ret
+            return driver
         try:
-            ret = self._getDriver()
+            driver = self._getDriver()
+            driver.set_window_size(self.width, self.height)
+            driver.set_window_position(self.start_x, self.start_y)
         except Exception as ex:
             LOG.exception(ex)
-        return ret
+        return driver
 
 class FireFoxDriverBuilder(DriverBuilder):
     def __init__(self, proxy=''):
@@ -93,25 +121,83 @@ class ChromeDriverBuilder(DriverBuilder):
         
         return webdriver.Chrome(chrome_options=options)
 
-def waitPlay(driver, url, minutes, locator="", waitlocator=60):
-    if not driver:
-        return
 
-    try:
-        LOG.info("Playing url=%s minutes=%s" % (url, minutes))
-        driver.get(url)
-        if locator:
-            LOG.info("Checking Page loaded")
-            WebDriverWait(driver, waitlocator).until(
-                EC.presence_of_element_located((By.ID, locator)))
+class Player(object):
+    def __init__(self, driverBuilder):
+        self.driverBuilder = driverBuilder
+        self.sanityLocator = "logo-icon-container"
+        self.waitSanityLocator = 60
+        self.adLocator = "player-ads"
+        self.waitAdLocator = 30
+    
+    def setSanityLocator(self, sanityLocator, waitSanityLocator = 60):
+        self.sanityLocator = sanityLocator
+        self.waitSanityLocator = waitSanityLocator
+        return self
+    
+    def setAdLocator(self, adLocator, waitAdLocator = 30):
+        self.adLocator = adLocator
+        self.waitAdLocator = waitAdLocator
+        return self
 
-        for x in range(minutes):
-            time.sleep(60)
-            LOG.info("Played %s mintues" % x)
-    except Exception as ex:
-        LOG.exception(ex)
-    finally:
-        driver.quit()
+    #def waitPlay(self, url, minutes, locator="", waitlocator=60):
+    def play(self, url, minutes):
+        self.driver = self.driverBuilder.getDriver()
+
+        if not self.driver:
+            return
+
+        try:
+            LOG.info("Playing url=%s minutes=%s" % (url, minutes))
+            self.driver.get(url)
+
+            locator, waitlocator = self.sanityLocator, self.waitSanityLocator
+            if locator:
+                LOG.info("Checking Page loading")
+                WebDriverWait(self.driver, waitlocator).until(
+                    EC.presence_of_element_located((By.ID, locator)))
+                LOG.info('Page loaded')
+            
+            locator, waitlocator = self.adLocator, self.waitAdLocator
+            if locator:
+                LOG.info("Checking AD loading")
+                WebDriverWait(self.driver, waitlocator).until(
+                    EC.presence_of_element_located((By.ID, locator)))
+                LOG.info("AD loaded")
+                time.sleep(5)
+                
+                elemAd = self.driver.find_element(By.ID, locator)
+                elemAdPos = elemAd.location
+                LOG.info('AD element location: ' + str(elemAdPos))
+                
+                builder = self.driverBuilder
+
+                x = builder.start_x + builder.width - 50 # to avoid the icon
+                y = builder.start_y + 3 + builder.extraHeader # mac header
+                LOG.info("Click browser at x:%s y:%s" % (x, y))
+                pyautogui.click(x, y, clicks=2, interval=0.5)
+                time.sleep(3)
+
+                x = builder.start_x + elemAdPos['x'] + 20
+                y = builder.start_y + elemAdPos['y'] + builder.browserHeaderHeight + 20
+                LOG.info("Click AD at x:%s y:%s" % (x, y))
+                pyautogui.click(x, y)
+                time.sleep(10)
+
+                LOG.info("Check new tab")
+                if len(self.driver.window_handles) > 1:
+                    LOG.info("Close the new Tab")
+                    self.driver.switch_to_window(self.driver.window_handles[1])
+                    self.driver.close()
+
+            LOG.info('Begin to play')
+            for x in range(minutes):
+                time.sleep(60)
+                LOG.info("Played %s mintues" % x)
+        except Exception as ex:
+            LOG.exception(ex)
+        finally:
+            self.driver.quit()
 
 def chkProxy(proxy):
     ret = True
@@ -134,6 +220,7 @@ def parseArguments():
     parser.add_argument('-p', '--proxyfile', help='File include proxy and port each line')
     parser.add_argument('-n', '--numberoftimes', help='Number of times to run', type=int, default=1)
     parser.add_argument('-b', '--browsers', help='Browsers to be used', default='chrome')
+    parser.add_argument('-l', '--location', help='Browse location x0,y0,x1,y1')
     parser.add_argument('--dryrun', action='store_true')
 
     return parser.parse_args()
@@ -165,6 +252,11 @@ chromeDriverBuilder = ChromeDriverBuilder()
 args = parseArguments()
 #print(args.linkfile)
 #print(args.proxyfile)
+
+if args.location:
+    locs = args.location.split(',')
+    fireFoxDriverBuilder.setLocation(*locs)
+    chromeDriverBuilder.setLocation(*locs)
 
 lstBrowsers = args.browsers.split(',')
 
@@ -217,5 +309,7 @@ while 1:
         if browser == 'firefox':
             builder = fireFoxDriverBuilder
         
-        driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
-        waitPlay(driver, one[0], one[1], "logo-icon-container")
+        #driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
+        #waitPlay(driver, one[0], one[1], "logo-icon-container")
+        builder.setProxy(proxy).setDryrun(args.dryrun)
+        Player(builder).play(one[0], one[1])
