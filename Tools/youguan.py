@@ -29,7 +29,7 @@ class DriverBuilder(object):
         self.dryrun = False
         self.start_x = 0
         self.start_y = 0
-        self.width = 1024
+        self.width = 1100
         self.height = 768
         self.browserHeaderHeight = 150
         self.extraHeader = 30 if platform.system() == 'Darwin' else 0
@@ -131,6 +131,7 @@ class Player(object):
         self.waitSanityLocator = 60
         self.adLocator = "player-ads"
         self.waitAdLocator = 30
+        self.clickAd = False
     
     def setSanityLocator(self, sanityLocator, waitSanityLocator = 60):
         self.sanityLocator = sanityLocator
@@ -140,6 +141,10 @@ class Player(object):
     def setAdLocator(self, adLocator, waitAdLocator = 30):
         self.adLocator = adLocator
         self.waitAdLocator = waitAdLocator
+        return self
+    
+    def setClickAd(self, clickAd):
+        self.clickAd = clickAd
         return self
 
     #def waitPlay(self, url, minutes, locator="", waitlocator=60):
@@ -161,7 +166,7 @@ class Player(object):
                 LOG.info('Page loaded')
             
             locator, waitlocator = self.adLocator, self.waitAdLocator
-            if locator:
+            if locator and self.clickAd:
                 LOG.info("Checking AD loading")
                 WebDriverWait(self.driver, waitlocator).until(
                     EC.presence_of_element_located((By.ID, locator)))
@@ -174,8 +179,8 @@ class Player(object):
                 
                 builder = self.driverBuilder
 
-                x = builder.start_x + builder.width - 50 # to avoid the icon
-                y = builder.start_y + 3 + builder.extraHeader # mac header
+                x = builder.start_x + builder.width - 1 # to avoid the icon
+                y = builder.start_y + 1 + builder.extraHeader # mac header
                 LOG.info("Click browser at x:%s y:%s" % (x, y))
                 pyautogui.click(x, y, clicks=2, interval=0.5)
                 time.sleep(3)
@@ -224,6 +229,7 @@ def parseArguments():
     parser.add_argument('-b', '--browsers', help='Browsers to be used', default='chrome')
     parser.add_argument('-l', '--location', help='Browse location x0,y0,x1,y1')
     parser.add_argument('--dryrun', action='store_true')
+    parser.add_argument('--clickad', action='store_true')
 
     return parser.parse_args()
 
@@ -314,4 +320,4 @@ while 1:
         #driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
         #waitPlay(driver, one[0], one[1], "logo-icon-container")
         builder.setProxy(proxy).setDryrun(args.dryrun)
-        Player(builder).play(one[0], one[1])
+        Player(builder).setClickAd(args.clickad).play(one[0], one[1])
