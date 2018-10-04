@@ -167,15 +167,22 @@ class Player(object):
             
             locator, waitlocator = self.adLocator, self.waitAdLocator
             if locator and self.clickAd:
-                LOG.info("Checking AD loading")
-                WebDriverWait(self.driver, waitlocator).until(
-                    EC.presence_of_element_located((By.ID, locator)))
-                LOG.info("AD loaded")
-                time.sleep(5)
-                
-                elemAd = self.driver.find_element(By.ID, locator)
-                elemAdPos = elemAd.location
-                LOG.info('AD element location: ' + str(elemAdPos))
+                start = time.time()
+                while (time.time() - start) < waitlocator:
+                    LOG.info("Checking AD loading")
+                    WebDriverWait(self.driver, waitlocator).until(
+                        EC.presence_of_element_located((By.ID, locator)))
+                    #LOG.info("AD loaded")
+                    time.sleep(5)
+                    
+                    elemAd = self.driver.find_element(By.ID, locator)
+                    elemAdPos = elemAd.location
+                    elemAdSize = elemAd.size
+                    LOG.info('AD element location: ' + str(elemAdPos))
+                    LOG.info('AD element size: ' + str(elemAdSize))
+
+                    if elemAdSize['height'] > 10:
+                        break
                 
                 builder = self.driverBuilder
 
