@@ -168,6 +168,7 @@ class Player(object):
             locator, waitlocator = self.adLocator, self.waitAdLocator
             if locator and self.clickAd:
                 start = time.time()
+                adShowed = False
                 while (time.time() - start) < waitlocator:
                     LOG.info("Checking AD loading")
                     WebDriverWait(self.driver, waitlocator).until(
@@ -182,27 +183,29 @@ class Player(object):
                     LOG.info('AD element size: ' + str(elemAdSize))
 
                     if elemAdSize['height'] > 10:
+                        adShowed = True
                         break
                 
-                builder = self.driverBuilder
+                if adShowed:
+                    builder = self.driverBuilder
 
-                x = builder.start_x + builder.width - 1 # to avoid the icon
-                y = builder.start_y + 1 + builder.extraHeader # mac header
-                LOG.info("Click browser at x:%s y:%s" % (x, y))
-                pyautogui.click(x, y, clicks=2, interval=0.5)
-                time.sleep(3)
+                    x = builder.start_x + builder.width - 1 # to avoid the icon
+                    y = builder.start_y + 1 + builder.extraHeader # mac header
+                    LOG.info("Click browser at x:%s y:%s" % (x, y))
+                    pyautogui.click(x, y, clicks=2, interval=0.5)
+                    time.sleep(3)
 
-                x = builder.start_x + elemAdPos['x'] + 20
-                y = builder.start_y + elemAdPos['y'] + builder.browserHeaderHeight + 20
-                LOG.info("Click AD at x:%s y:%s" % (x, y))
-                pyautogui.click(x, y)
-                time.sleep(10)
+                    x = builder.start_x + elemAdPos['x'] + 50
+                    y = builder.start_y + elemAdPos['y'] + builder.browserHeaderHeight + 20
+                    LOG.info("Click AD at x:%s y:%s" % (x, y))
+                    pyautogui.click(x, y)
+                    time.sleep(10)
 
-                LOG.info("Check new tab")
-                if len(self.driver.window_handles) > 1:
-                    LOG.info("Close the new Tab")
-                    self.driver.switch_to_window(self.driver.window_handles[1])
-                    self.driver.close()
+                    LOG.info("Check new tab")
+                    if len(self.driver.window_handles) > 1:
+                        LOG.info("Close the new Tab")
+                        self.driver.switch_to_window(self.driver.window_handles[1])
+                        self.driver.close()
 
             LOG.info('Begin to play')
             for x in range(minutes):
