@@ -132,6 +132,7 @@ class Player(object):
         self.adLocator = "player-ads"
         self.waitAdLocator = 60
         self.clickAd = False
+        self.seeAd = 60
     
     def setSanityLocator(self, sanityLocator, waitSanityLocator = 60):
         self.sanityLocator = sanityLocator
@@ -199,7 +200,7 @@ class Player(object):
                     y = builder.start_y + elemAdPos['y'] + builder.browserHeaderHeight + 20
                     LOG.info("Click AD at x:%s y:%s" % (x, y))
                     pyautogui.click(x, y)
-                    time.sleep(10)
+                    time.sleep(self.seeAd)
 
                     LOG.info("Check new tab")
                     if len(self.driver.window_handles) > 1:
