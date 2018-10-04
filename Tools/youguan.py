@@ -83,6 +83,8 @@ class FireFoxDriverBuilder(DriverBuilder):
     
     def _getDriver(self):
         profile = webdriver.FirefoxProfile()
+        profile.set_preference("browser.link.open_newwindow", 1)
+
         if self.proxy:
             host, port = self.proxy.split(":")
             profile.set_preference("network.proxy.type", 1)
