@@ -130,7 +130,7 @@ class Player(object):
         self.sanityLocator = "logo-icon-container"
         self.waitSanityLocator = 60
         self.adLocator = "player-ads"
-        self.waitAdLocator = 30
+        self.waitAdLocator = 60
         self.clickAd = False
     
     def setSanityLocator(self, sanityLocator, waitSanityLocator = 60):
