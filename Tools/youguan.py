@@ -167,7 +167,9 @@ class Player(object):
                 LOG.info('Page loaded')
             
             locator, waitlocator = self.adLocator, self.waitAdLocator
-            if locator and self.clickAd:
+            rint = random.randint(1,10)
+            LOG.info("RandInt: %s" % rint)
+            if locator and self.clickAd and rint == 10:
                 start = time.time()
                 adShowed = False
                 while (time.time() - start) < waitlocator:
