@@ -177,12 +177,12 @@ def findUser(driver, userId):
 # https://stackoverflow.com/questions/20986631/how-can-i-scroll-a-web-page-using-selenium-webdriver-in-python
 
 
-githuburl = 'https://raw.githubusercontent.com/wanghh00/py3code/master/Tools/proxyfile'
-r = requests.get(githuburl)
-print(r.headers)
-print(requests.get(githuburl).text.split('\n'))
+#githuburl = 'https://raw.githubusercontent.com/wanghh00/py3code/master/Tools/proxyfile'
+#r = requests.get(githuburl)
+#print(r.headers)
+#print(requests.get(githuburl).text.split('\n'))
 
-sys.exit(0)
+#sys.exit(0)
 
 url = 'https://www.youtube.com/'
 driver = chromeDriverBuilder.getDriver()
@@ -206,9 +206,34 @@ for one in driver.find_elements(By.ID, "thumbnail"):
     if href.find("knucZCUpmxs") != -1:
         one.click()
 
+LOG.info("Scoll to bottom 1")
+driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+time.sleep(3)
+
+LOG.info("Scoll to bottom 2")
+driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+for x in range(0,10):
+    driver.execute_script("window.scrollTo(0, Math.max(document.documentElement.scrollHeight, \
+        document.body.scrollHeight, document.documentElement.clientHeight));")
+    #driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+    #driver.execute_script("window.scrollTo(0,Math.max(document.documentElement.scrollHeight," 
+    #    + "document.body.scrollHeight,document.documentElement.clientHeight));")
+    time.sleep(5)
+
 time.sleep(60)
 
 sys.exit(0)
+
+def scrollToBottom(driver):
+    driver.execute_script("window.scrollTo(0, Math.max(document.documentElement.scrollHeight, \
+        document.body.scrollHeight, document.documentElement.clientHeight));")
+    return driver
+
+
+# /channel/UChw72cSGdllVEf3HQRQCjvw 
+# ytd-channel-renderer
 
 
 args = parseArguments()
