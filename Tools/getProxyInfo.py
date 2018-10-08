@@ -65,7 +65,7 @@ try:
             outFile.write("%s\n" % proxy)
     
     # handle SPYSURLS
-    driver = chromeDriverBuilder.getDriver()
+    driver = chromeDriverBuilder.addArgument("--headless").getDriver()
     for one in SPYSURLS:
         outFile.write("\n#%s\n" % one)
         driver.get(one)

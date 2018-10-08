@@ -90,6 +90,10 @@ class ChromeDriverBuilder(DriverBuilder):
     def setArguments(self, arguments):
         self.arguments = arguments
         return self
+    
+    def addArgument(self, argument):
+        self.arguments.append(argument)
+        return self
 
     def _getDriver(self):
         #options = webdriver.ChromeOptions()
