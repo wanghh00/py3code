@@ -30,3 +30,8 @@ def getFileDesc(path):
         LOG.error(ex)
         fd = None
     return fd
+
+def scrollToBottom(driver):
+    driver.execute_script("window.scrollTo(0, Math.max(document.documentElement.scrollHeight, \
+        document.body.scrollHeight, document.documentElement.clientHeight));")
+    return driver
