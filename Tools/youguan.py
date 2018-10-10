@@ -31,6 +31,7 @@ class Player(object):
         self.adLocator = "player-ads"
         self.waitAdLocator = 60
         self.clickAd = False
+        self.clickRate = 10
         self.seeAd = 60
     
     def setSanityLocator(self, sanityLocator, waitSanityLocator = 60):
@@ -45,6 +46,11 @@ class Player(object):
     
     def setClickAd(self, clickAd):
         self.clickAd = clickAd
+        return self
+    
+    def setClickRate(self, clickRate):
+        self.clickRate = clickRate
+        self.clickAd = True
         return self
 
     #def waitPlay(self, url, minutes, locator="", waitlocator=60):
@@ -68,7 +74,7 @@ class Player(object):
             locator, waitlocator = self.adLocator, self.waitAdLocator
             rint = random.randint(1,10)
             LOG.info("RandInt: %s" % rint)
-            if locator and self.clickAd and rint == 10:
+            if locator and self.clickAd and rint == 1:
                 start = time.time()
                 adShowed = False
                 while (time.time() - start) < waitlocator:
@@ -142,6 +148,7 @@ def parseArguments():
     parser.add_argument('-l', '--location', help='Browse location x0,y0,x1,y1')
     parser.add_argument('--dryrun', action='store_true')
     parser.add_argument('--clickad', action='store_true')
+    parser.add_argument('--clickrate', help='click rate 1 out of n', type=int, default=10)
 
     return parser.parse_args()
 
@@ -211,4 +218,4 @@ while 1:
         #driver = builder.setProxy(proxy).setDryrun(args.dryrun).getDriver()
         #waitPlay(driver, one[0], one[1], "logo-icon-container")
         builder.setProxy(proxy).setDryrun(args.dryrun)
-        Player(builder).setClickAd(args.clickad).play(one[0], one[1])
+        Player(builder).setClickAd(args.clickad).setClickRate(args.clickrate).play(one[0], one[1])
