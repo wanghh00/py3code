@@ -72,7 +72,7 @@ class Player(object):
                 LOG.info('Page loaded')
             
             locator, waitlocator = self.adLocator, self.waitAdLocator
-            rint = random.randint(1,10)
+            rint = random.randint(1,self.clickRate)
             LOG.info("RandInt: %s" % rint)
             if locator and self.clickAd and rint == 1:
                 start = time.time()
