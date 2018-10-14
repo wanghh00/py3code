@@ -27,6 +27,9 @@ US_PROXY_ORG = ["https://www.us-proxy.org/"]
 
 comm.initLOG()
 
+#print(requests.get(SPYSURLS[0]).text)
+#sys.exit(0)
+
 def parseHtmlFromUSProxyOrg(html):
     ret = []
     try:
