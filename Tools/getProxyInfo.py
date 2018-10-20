@@ -18,11 +18,13 @@ from utils import webdriverbuilder
 fireFoxDriverBuilder = webdriverbuilder.FireFoxDriverBuilder()
 chromeDriverBuilder = webdriverbuilder.ChromeDriverBuilder()
 
-SPYSURLS = ["http://spys.one/free-proxy-list/US/", "http://spys.one/free-proxy-list/US/1/", 
-    "http://spys.one/free-proxy-list/CA/", "http://spys.one/free-proxy-list/CA/1/", 
-    "http://spys.one/free-proxy-list/AU/", "http://spys.one/free-proxy-list/AU/1/",
-    "http://spys.one/free-proxy-list/UK/", "http://spys.one/free-proxy-list/UK/1/",
-    "http://spys.one/free-proxy-list/NZ/", "http://spys.one/free-proxy-list/NZ/1/"]
+#SPYSURLS = ["http://spys.one/free-proxy-list/US/", "http://spys.one/free-proxy-list/US/1/", 
+#    "http://spys.one/free-proxy-list/CA/", "http://spys.one/free-proxy-list/CA/1/", 
+#    "http://spys.one/free-proxy-list/AU/", "http://spys.one/free-proxy-list/AU/1/",
+#    "http://spys.one/free-proxy-list/UK/", "http://spys.one/free-proxy-list/UK/1/",
+#    "http://spys.one/free-proxy-list/NZ/", "http://spys.one/free-proxy-list/NZ/1/"]
+
+SPYSURLS = ["http://spys.one/free-proxy-list/US/", "http://spys.one/free-proxy-list/US/1/"]
 US_PROXY_ORG = ["https://www.us-proxy.org/"]
 
 comm.initLOG()
