@@ -24,8 +24,10 @@ chromeDriverBuilder = webdriverbuilder.ChromeDriverBuilder()
 #    "http://spys.one/free-proxy-list/UK/", "http://spys.one/free-proxy-list/UK/1/",
 #    "http://spys.one/free-proxy-list/NZ/", "http://spys.one/free-proxy-list/NZ/1/"]
 
-SPYSURLS = ["http://spys.one/free-proxy-list/US/", "http://spys.one/free-proxy-list/US/1/"]
-US_PROXY_ORG = ["https://www.us-proxy.org/"]
+SPYSURLS = ["http://spys.one/free-proxy-list/US/", "http://spys.one/free-proxy-list/US/1/",
+    "http://spys.one/free-proxy-list/CA/", "http://spys.one/free-proxy-list/CA/1/",
+    "http://spys.one/free-proxy-list/UK/", "http://spys.one/free-proxy-list/UK/1/"]
+US_PROXY_ORG = ["https://www.us-proxy.org/", "https://free-proxy-list.net/uk-proxy.html"]
 
 comm.initLOG()
 
@@ -39,7 +41,7 @@ def parseHtmlFromUSProxyOrg(html):
         table = soup.find('table', id='proxylisttable')
         for row in table.find_all('tr'):
             tds = row.find_all('td')
-            if len(tds) < 8 or not tds[2].contents[0] == 'US' or not tds[4].contents[0] == 'elite proxy' \
+            if len(tds) < 8 or not tds[2].contents[0] in ['US','GB'] or not tds[4].contents[0] == 'elite proxy' \
                     or not tds[6].contents[0] == 'yes':
                 continue
             ret.append("%s:%s" % (tds[0].contents[0], tds[1].contents[0]))
